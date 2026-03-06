@@ -27,7 +27,6 @@ type Actress = Person & {
 }
 
 // Funzione che recupera un'attrice tramite id e restituisce un oggetto Actress oppure null
-
 async function getActress(id: number): Promise<Actress | null> {
   try {
     const response = await fetch(`http://localhost:3333/actresses/${id}`);
@@ -50,8 +49,41 @@ async function getActress(id: number): Promise<Actress | null> {
   }
 }
 
-// Type guard che verifica che i dati abbiano la struttura del tipo Actress
+// Funzione che recupera tutte le attrici e restituisce un array oggetti Actress oppure vuoto
+async function getAllActresses(): Promise<Actress[]> {
+  try {
+    const response = await fetch("http://localhost:3333/actresses");
 
+    // Verifica che la risposta HTTP sia valida
+    if (!response.ok) {
+      throw new Error("Errore HTTP: " + response.status + response.statusText)
+    }
+
+    const data: unknown = await response.json();
+
+    // Verifica che i dati ricevuti siano un array
+    if(!(data instanceof Array)) {
+      throw new Error("Formato dati non valido")
+    }
+
+    // Filtra elementi array che rispettano la struttura del tipo Actress
+    const atticiValide: Actress[] = data.filter(attrice => isActress(attrice))
+    
+    return atticiValide;
+
+
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Errore durante il recupero delle attici: !", error)
+    }
+    else {
+      console.error("Errore sconosciuto: ", error)
+    }
+    return [];
+  }
+}
+
+// Type guard che verifica che i dati abbiano la struttura del tipo Actress
 function isActress(data: unknown): data is Actress {
   if (
     data &&
@@ -61,15 +93,14 @@ function isActress(data: unknown): data is Actress {
     "birth_year" in data && typeof (data).birth_year === "number" &&
     "biography" in data && typeof (data).biography === "string" &&
     "image" in data && typeof (data).image === "string" &&
-    "most_famous_movies" in data && 
-      data.most_famous_movies instanceof Array &&
-      data.most_famous_movies.length === 3 &&
-      data.most_famous_movies.every(movie => typeof movie === "string") &&
+    "most_famous_movies" in data &&
+    data.most_famous_movies instanceof Array &&
+    data.most_famous_movies.length === 3 &&
+    data.most_famous_movies.every(movie => typeof movie === "string") &&
     "awards" in data && typeof (data).awards === "string" &&
     "nationality" in data && typeof (data).nationality === "string"
   ) {
     return true;
   }
-
   return false;
 }
