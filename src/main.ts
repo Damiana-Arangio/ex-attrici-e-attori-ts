@@ -83,6 +83,29 @@ async function getAllActresses(): Promise<Actress[]> {
   }
 }
 
+// Funzione che recupera più attrici a partire da un array di id
+async function getActresses(idAttrici: number[]): Promise<(Actress | null)[]> {
+
+  try {
+
+    // Per ogni id viene chiamata la funzione getActress per recuperare l’attrice corrispondente.
+    const arrayPromises = idAttrici.map(idAttrice => getActress(idAttrice));
+
+    // Attende la risoluzione di tutte le promise
+    const results = await Promise.all(arrayPromises);
+    return results;
+
+  } 
+  catch (error) {
+    if (error instanceof Error) {
+      console.error("Errore durante il recupero delle attrici:", error);
+    } else {
+      console.error("Errore sconosciuto:", error);
+    }
+    return [];
+  }
+}
+
 // Type guard che verifica che i dati abbiano la struttura del tipo Actress
 function isActress(data: unknown): data is Actress {
   if (
